@@ -55,19 +55,21 @@ architecture Behavioral of cpu is
     signal IR2 : unsigned (31 downto 0);
     
     alias OP2 : unsigned (6 downto 0) is IR2 (6 downto 0);
-    alias RDu2 : unsigned (4 downto 0) is IR2 (11 downto 7); 
+    --alias RD2 : unsigned (4 downto 0) is IR2 (11 downto 7);
+     
     alias IMMu2 : unsigned (19 downto 0) is IR2 (31 downto 12);
+    
+    alias IMMi2 : unsigned (11 downto 0) is IR2 (31 downto 20);
+    alias RS1i2 : unsigned (4 downto 0) is IR2 (19 downto 15);
+    alias FUNCT3i2 : unsigned (2 downto 0) is IR2 (14 downto 12);
     
     signal PC2 : unsigned (31 downto 0);
     signal JMP : std_logic;
     
     signal IR3 : unsigned (31 downto 0);
-    signal IR4 : unsigned (31 downto 0);
     
-    signal IR5 : unsigned (31 downto 0);
-
-    alias OP5 : unsigned (6 downto 0) is IR5 (6 downto 0);
-    alias RDu5 : unsigned (4 downto 0) is IR5 (11 downto 7); 
+    alias OP3 : unsigned (6 downto 0) is IR3 (6 downto 0);
+    alias RD3 : unsigned (4 downto 0) is IR3 (11 downto 7); 
         
     signal PC : unsigned (31 downto 0) := x"00000000";
     signal PM : unsigned (31 downto 0);
@@ -81,12 +83,10 @@ architecture Behavioral of cpu is
     signal A2 : unsigned (31 downto 0);
     signal AR : unsigned (31 downto 0);
     
-    signal AR3 : unsigned (31 downto 0);
-    signal AR4 : unsigned (31 downto 0);
-    signal AR5 : unsigned (31 downto 0);
-    
     constant OP_LUI : unsigned (6 downto 0) := "0110111";
     constant OP_AUIPC : unsigned (6 downto 0) := "0010111";
+    
+    constant OP_ADDI : unsigned (6 downto 0) := "0010011";
 begin
 
     -- Instruction Fetch
@@ -108,51 +108,47 @@ begin
             case OP2 is
                 when OP_LUI =>
                     AOP <= "0001";
-                    A1 <= Immu2 & (31 downto Immu2'length => '0');
+                    A1 <= IMMu2 & (31 downto IMMu2'length => '0');
                     JMP <= '0';
                 when OP_AUIPC =>
                     AOP <= "0010";
-                    A1 <= Immu2 & (31 downto Immu2'length => '0');
+                    A1 <= IMMu2 & (31 downto IMMu2'length => '0');
                     A2 <= PC;
                     JMP <= '0';
+                when OP_ADDI =>
+                    AOP <= "0010";
+                    A1 <= (31 downto IMMi2'length => '0') & IMMi2;
+                    
+                    if (RD3 = RS1i2) then
+                        A2 <= AR;
+                    else
+                        A2 <= GR (to_integer (RS1i2));
+                    end if;
+                    
+                    JMP <= '0';
                 when others =>
+                    AOP <= "0000";
                     JMP <= '0';
             end case;
-        end if;
-    end process;
-    
-    -- Execute
-    process (clk) begin
-        if rising_edge(clk) then
-            IR3 <= IR2;
-        end if;
-    end process;
-    
-    -- Memory Access
-    process (clk) begin
-        if rising_edge(clk) then
-            IR4 <= IR3;
-            AR4 <= AR3;
         end if;
     end process;
     
     -- Write Back
     process (clk) begin
         if rising_edge(clk) then
-            IR5 <= IR4;
-            AR5 <= AR4;
-            case OP5 is
+            IR3 <= IR2;
+            case OP3 is
                 when OP_LUI =>
-                    GR (to_integer(RDu5)) <= AR5;
+                    GR (to_integer (RD3)) <= AR;
                 when OP_AUIPC =>
-                    GR (to_integer(RDu5)) <= AR5;
+                    GR (to_integer (RD3)) <= AR;
+                when OP_ADDI =>
+                    GR (to_integer (RD3)) <= AR;
                 when others =>
                     JMP <= '0';
             end case;
         end if;
     end process;
-    
-    AR3 <= AR;
     
     -- Connections to other components
     U0 : pmem port map (addr=>PC, data=>PM);

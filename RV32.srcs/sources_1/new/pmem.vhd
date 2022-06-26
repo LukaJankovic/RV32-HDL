@@ -36,9 +36,8 @@ architecture Behavioral of pmem is
     type pmem_t is array (0 to 31) of unsigned (31 downto 0);
     constant pmem_init : pmem_t :=
     (
-        b"00000100111000100000_00000_0110111",
-        b"11111111111111111111_00001_0110111",
-        b"00000000000000000001_00010_0010111",
+        b"000000000001_00000_000_00000_0010011",
+        b"000000000010_00000_000_00000_0010011",
         others => x"00000000"
     );
 
@@ -46,6 +45,6 @@ architecture Behavioral of pmem is
 
 begin
 
-    data <= pmem_c(to_integer(addr));
+    data <= pmem_c (to_integer (addr));
 
 end Behavioral;
