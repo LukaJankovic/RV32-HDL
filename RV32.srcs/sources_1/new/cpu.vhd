@@ -41,7 +41,7 @@ architecture Behavioral of cpu is
     component alu
         port (
             clk : in std_logic;
-            OP : in unsigned (3 downto 0);
+            OP : in unsigned (2 downto 0);
             A1 : in unsigned (31 downto 0);
             A2 : in unsigned (31 downto 0);
             AR : out unsigned (31 downto 0)
@@ -70,6 +70,9 @@ architecture Behavioral of cpu is
     
     alias OP3 : unsigned (6 downto 0) is IR3 (6 downto 0);
     alias RD3 : unsigned (4 downto 0) is IR3 (11 downto 7); 
+    
+    alias IMMu3 : unsigned (19 downto 0) is IR3 (31 downto 12);
+
         
     signal PC : unsigned (31 downto 0) := x"00000000";
     signal PM : unsigned (31 downto 0);
@@ -78,10 +81,11 @@ architecture Behavioral of cpu is
     signal GR : register_array := (others => x"00000000");
     
     -- ALU Signals
-    signal AOP : unsigned (3 downto 0);
+    signal AOP : unsigned (2 downto 0);
     signal A1 : unsigned (31 downto 0);
     signal A2 : unsigned (31 downto 0);
     signal AR : unsigned (31 downto 0);
+    signal AFLAG : std_logic;
     
     constant OP_LUI : unsigned (6 downto 0) := "0110111";
     constant OP_AUIPC : unsigned (6 downto 0) := "0010111";
@@ -103,31 +107,28 @@ begin
     
     -- Register Read
     process (clk) begin
-        if rising_edge(clk) then
+        if rising_edge (clk) then
             IR2 <= IR1;
             case OP2 is
-                when OP_LUI =>
-                    AOP <= "0001";
-                    A1 <= IMMu2 & (31 downto IMMu2'length => '0');
-                    JMP <= '0';
                 when OP_AUIPC =>
-                    AOP <= "0010";
+                    AOP <= "000";
                     A1 <= IMMu2 & (31 downto IMMu2'length => '0');
                     A2 <= PC;
                     JMP <= '0';
                 when OP_ADDI =>
-                    AOP <= "0010";
-                    A1 <= (31 downto IMMi2'length => '0') & IMMi2;
+                    AOP <= FUNCT3i2;
                     
                     if (RD3 = RS1i2) then
-                        A2 <= AR;
+                        A1 <= AR;
                     else
-                        A2 <= GR (to_integer (RS1i2));
+                        A1 <= GR (to_integer (RS1i2));
                     end if;
                     
+                    A2 <= (31 downto IMMi2'length => '0') & IMMi2;
                     JMP <= '0';
                 when others =>
-                    AOP <= "0000";
+                    A1 <= (others => '0');
+                    A2 <= (others => '0');
                     JMP <= '0';
             end case;
         end if;
@@ -135,11 +136,11 @@ begin
     
     -- Write Back
     process (clk) begin
-        if rising_edge(clk) then
+        if rising_edge (clk) then
             IR3 <= IR2;
             case OP3 is
                 when OP_LUI =>
-                    GR (to_integer (RD3)) <= AR;
+                    GR (to_integer (RD3)) <= IMMu3 & (31 downto IMMu3'length => '0');
                 when OP_AUIPC =>
                     GR (to_integer (RD3)) <= AR;
                 when OP_ADDI =>
