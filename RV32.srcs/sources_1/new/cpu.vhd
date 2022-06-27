@@ -63,6 +63,8 @@ architecture Behavioral of cpu is
     alias RS1i2 : unsigned (4 downto 0) is IR2 (19 downto 15);
     alias FUNCT3i2 : unsigned (2 downto 0) is IR2 (14 downto 12);
     
+    alias RS2r2 : unsigned (4 downto 0) is IR2 (24 downto 20);
+    
     signal PC2 : unsigned (31 downto 0);
     signal JMP : std_logic;
     
@@ -89,8 +91,8 @@ architecture Behavioral of cpu is
     
     constant OP_LUI : unsigned (6 downto 0) := "0110111";
     constant OP_AUIPC : unsigned (6 downto 0) := "0010111";
-    
     constant OP_ADDI : unsigned (6 downto 0) := "0010011";
+    constant OP_ADD : unsigned (6 downto 0) := "0110011";
 begin
 
     -- Instruction Fetch
@@ -126,6 +128,20 @@ begin
                     
                     A2 <= (31 downto IMMi2'length => '0') & IMMi2;
                     JMP <= '0';
+                when OP_ADD =>
+                    AOP <= FUNCT3i2;
+                    
+                    if (RD3 = RS1i2) then
+                        A1 <= AR;
+                    else
+                        A1 <= GR (to_integer (RS1i2));
+                    end if;
+                    
+                    if (RD3 = RS1i2) then
+                        A1 <= AR;
+                    else
+                        A1 <= GR (to_integer (RS2r2));
+                    end if;
                 when others =>
                     A1 <= (others => '0');
                     A2 <= (others => '0');

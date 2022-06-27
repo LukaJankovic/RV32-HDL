@@ -38,26 +38,24 @@ architecture Behavioral of alu is
 
 begin
 
-   -- process (clk) begin
-   --     if rising_edge (clk) then
-   --         case OP is
-   --             when "000" =>
-   --                 AR <= A1 + A2;
-   --             when "010" =>
-   --                 if A1 < A2 then
-   --                     AR <= x"00000001";
-   --                 else
-   --                     AR <= x"00000000";
-   --                 end if;
-   --             when others =>
-   --                 AR <= x"00000000";
-   --         end case;
-   --     end if;
-   -- end process;
+   AR <= A1 + A2                                        when (OP = "000") else
    
-   AR <= A1 + A2     when (OP = "000") else
-         x"00000001" when ((OP = "010") and (A1 < A2)) else
-         x"00000000" when ((OP = "010") and (A1 > A2)) else
+         shift_left (A1, to_integer (A2 (5 downto 0)))  when (OP = "001") else
+   
+         x"00000001"                                    when ((OP = "010") and (to_integer (A1) < to_integer (A2))) else
+         x"00000000"                                    when ((OP = "010") and (to_integer (A1) > to_integer (A2))) else
+
+         x"00000001"                                    when ((OP = "011") and (A1 < A2)) else
+         x"00000000"                                    when ((OP = "011") and (A1 > A2)) else
+
+         A1 xor A2                                      when (OP = "100") else
+         
+         shift_right (A1, to_integer (A2 (5 downto 0))) when (OP = "101") else
+
+         A1 or A2                                       when (OP = "110") else
+
+         A1 and A2                                      when (OP = "111") else
+         
          (others => '0');
 
 end Behavioral;
