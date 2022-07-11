@@ -29,6 +29,7 @@ entity alu is
            OP : in unsigned (2 downto 0);
            A1 : in unsigned (31 downto 0);
            A2 : in unsigned (31 downto 0);
+           ANEG : in std_logic;
            AR : out unsigned (31 downto 0)
            );
 
@@ -38,7 +39,8 @@ architecture Behavioral of alu is
 
 begin
 
-   AR <= A1 + A2                                        when (OP = "000") else
+   AR <= A1 + A2                                        when (OP = "000") and ANEG = '0' else
+         A1 - A2                                        when (OP = "000") and ANEG = '1' else
    
          shift_left (A1, to_integer (A2 (5 downto 0)))  when (OP = "001") else
    

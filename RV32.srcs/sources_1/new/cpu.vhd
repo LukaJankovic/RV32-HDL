@@ -41,6 +41,7 @@ architecture Behavioral of cpu is
     component alu
         port (
             clk : in std_logic;
+            ANEG : in std_logic;
             OP : in unsigned (2 downto 0);
             A1 : in unsigned (31 downto 0);
             A2 : in unsigned (31 downto 0);
@@ -64,6 +65,7 @@ architecture Behavioral of cpu is
     alias FUNCT3i2 : unsigned (2 downto 0) is IR2 (14 downto 12);
     
     alias RS2r2 : unsigned (4 downto 0) is IR2 (24 downto 20);
+    alias FUNCT7r2 : unsigned (6 downto 0) is IR2 (31 downto 25);
     
     signal PC2 : unsigned (31 downto 0);
     signal JMP : std_logic;
@@ -87,6 +89,7 @@ architecture Behavioral of cpu is
     signal A1 : unsigned (31 downto 0);
     signal A2 : unsigned (31 downto 0);
     signal AR : unsigned (31 downto 0);
+    signal ANEG : std_logic;
     signal AFLAG : std_logic;
     
     constant OP_LUI : unsigned (6 downto 0) := "0110111";
@@ -103,6 +106,9 @@ begin
                 PC <= PC2;
             else
                 PC <= PC + 1;
+                if PC = 31 then
+                    PC <= (others => '0');
+                end if;
             end if;
         end if;
     end process;
@@ -111,6 +117,7 @@ begin
     process (clk) begin
         if rising_edge (clk) then
             IR2 <= IR1;
+            ANEG <= '0';
             case OP2 is
                 when OP_AUIPC =>
                     AOP <= "000";
@@ -131,20 +138,25 @@ begin
                 when OP_ADD =>
                     AOP <= FUNCT3i2;
                     
+                    if (FUNCT7r2 = "0100000") then
+                        ANEG <= '1';
+                    end if;
+                    
                     if (RD3 = RS1i2) then
                         A1 <= AR;
                     else
                         A1 <= GR (to_integer (RS1i2));
                     end if;
                     
-                    if (RD3 = RS1i2) then
-                        A1 <= AR;
+                    if (RD3 = RS2r2) then
+                        A2 <= AR;
                     else
-                        A1 <= GR (to_integer (RS2r2));
+                        A2 <= GR (to_integer (RS2r2));
                     end if;
                 when others =>
                     A1 <= (others => '0');
                     A2 <= (others => '0');
+                    ANEG <= '0';
                     JMP <= '0';
             end case;
         end if;
@@ -161,6 +173,8 @@ begin
                     GR (to_integer (RD3)) <= AR;
                 when OP_ADDI =>
                     GR (to_integer (RD3)) <= AR;
+                when OP_ADD =>
+                    GR (to_integer (RD3)) <= AR;
                 when others =>
                     JMP <= '0';
             end case;
@@ -170,6 +184,6 @@ begin
     -- Connections to other components
     U0 : pmem port map (addr=>PC, data=>PM);
 
-    U1 : alu port map (clk=>clk, OP=>AOP, A1=>A1, A2=>A2, AR=>AR); 
+    U1 : alu port map (clk=>clk, OP=>AOP, A1=>A1, A2=>A2, AR=>AR, ANEG=>ANEG); 
 
 end Behavioral;
