@@ -37,27 +37,40 @@ end alu;
 
 architecture Behavioral of alu is
 
+    function ar_shift_right ( signal A1 : in unsigned (31 downto 0);
+                              signal A2 : in unsigned (31 downto 0)
+                            )
+                            
+                            return unsigned is variable res : unsigned (31 downto 0);
+
+            variable shamt : integer := to_integer (A2 (5 downto 0));
+        begin
+            res := (31 downto (31 - shamt) => A1 (31)) & A1 (30 downto shamt);
+            return res;
+    end ar_shift_right;
+
 begin
 
-   AR <= A1 + A2                                        when (OP = "000") and ANEG = '0' else
-         A1 - A2                                        when (OP = "000") and ANEG = '1' else
+    AR <= A1 + A2                                when (OP = "000") and ANEG = '0' else
+          A1 - A2                                when (OP = "000") and ANEG = '1' else
    
-         shift_left (A1, to_integer (A2 (5 downto 0)))  when (OP = "001") else
+          A1 sll to_integer (A2 (5 downto 0))    when (OP = "001") else
    
-         x"00000001"                                    when ((OP = "010") and (to_integer (A1) < to_integer (A2))) else
-         x"00000000"                                    when ((OP = "010") and (to_integer (A1) > to_integer (A2))) else
+          x"00000001"                            when ((OP = "010") and (to_integer (A1) < to_integer (A2))) else
+          x"00000000"                            when ((OP = "010") and (to_integer (A1) > to_integer (A2))) else
 
-         x"00000001"                                    when ((OP = "011") and (A1 < A2)) else
-         x"00000000"                                    when ((OP = "011") and (A1 > A2)) else
+          x"00000001"                            when ((OP = "011") and (A1 < A2)) else
+          x"00000000"                            when ((OP = "011") and (A1 > A2)) else
 
-         A1 xor A2                                      when (OP = "100") else
+          A1 xor A2                              when (OP = "100") else
          
-         shift_right (A1, to_integer (A2 (5 downto 0))) when (OP = "101") else
+          A1 srl to_integer (A2 (5 downto 0))    when (OP = "101") and ANEG = '0' else
+          ar_shift_right (A1, A2)                when (OP = "101") and ANEG = '1' else
 
-         A1 or A2                                       when (OP = "110") else
+          A1 or A2                               when (OP = "110") else
 
-         A1 and A2                                      when (OP = "111") else
+          A1 and A2                              when (OP = "111") else
          
-         (others => '0');
+          (others => '0');
 
 end Behavioral;

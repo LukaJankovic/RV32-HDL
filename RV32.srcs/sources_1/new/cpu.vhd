@@ -85,12 +85,11 @@ architecture Behavioral of cpu is
     signal GR : register_array := (others => x"00000000");
     
     -- ALU Signals
-    signal AOP : unsigned (2 downto 0);
-    signal A1 : unsigned (31 downto 0);
-    signal A2 : unsigned (31 downto 0);
-    signal AR : unsigned (31 downto 0);
+    signal AOP : unsigned (2 downto 0) := (others => '0');
+    signal A1 : unsigned (31 downto 0) := (others => '0');
+    signal A2 : unsigned (31 downto 0) := (others => '0');
+    signal AR : unsigned (31 downto 0) := (others => '0');
     signal ANEG : std_logic;
-    signal AFLAG : std_logic;
     
     constant OP_LUI : unsigned (6 downto 0) := "0110111";
     constant OP_AUIPC : unsigned (6 downto 0) := "0010111";
@@ -116,16 +115,23 @@ begin
     -- Register Read
     process (clk) begin
         if rising_edge (clk) then
+            AOP <= "000";
             IR2 <= IR1;
             ANEG <= '0';
+            JMP <= '0';
             case OP2 is
+                when OP_LUI =>
+                    A1 <= IMMu2 & (31 downto IMMu3'length => '0');
+                    A2 <= (others => '0');
                 when OP_AUIPC =>
-                    AOP <= "000";
                     A1 <= IMMu2 & (31 downto IMMu2'length => '0');
                     A2 <= PC;
-                    JMP <= '0';
                 when OP_ADDI =>
                     AOP <= FUNCT3i2;
+                    
+                    if (FUNCT3i2 = "101" and FUNCT7r2 = "0100000") then
+                        ANEG <= '1';
+                    end if;
                     
                     if (RD3 = RS1i2) then
                         A1 <= AR;
@@ -134,7 +140,6 @@ begin
                     end if;
                     
                     A2 <= (31 downto IMMi2'length => '0') & IMMi2;
-                    JMP <= '0';
                 when OP_ADD =>
                     AOP <= FUNCT3i2;
                     
@@ -166,18 +171,7 @@ begin
     process (clk) begin
         if rising_edge (clk) then
             IR3 <= IR2;
-            case OP3 is
-                when OP_LUI =>
-                    GR (to_integer (RD3)) <= IMMu3 & (31 downto IMMu3'length => '0');
-                when OP_AUIPC =>
-                    GR (to_integer (RD3)) <= AR;
-                when OP_ADDI =>
-                    GR (to_integer (RD3)) <= AR;
-                when OP_ADD =>
-                    GR (to_integer (RD3)) <= AR;
-                when others =>
-                    JMP <= '0';
-            end case;
+            GR (to_integer (RD3)) <= AR;
         end if;
     end process;
     
