@@ -145,7 +145,7 @@ begin
                 PC <= PC2;
             else
                 PC <= PC + 4;
-                if PC = 28 then
+                if PC = 1020 then -- temporary memory overflow fix
                     PC <= (others => '0');
                 end if;
             end if;
@@ -186,7 +186,7 @@ begin
                     A2 <= data_fwd (RD3, RS2r2);
                 when OP_LB =>
                     POP <= FUNCT3i2;
-                    PADDR <= GR (to_integer (RS1i2)) + IMMi2;
+                    PADDR <= data_fwd (RD3, RS1i2) + IMMi2;
                 when others =>
                     A1 <= (others => '0');
                     A2 <= (others => '0');
@@ -200,7 +200,10 @@ begin
     process (clk) begin
         if rising_edge (clk) then
             IR3 <= IR2;
-            GR (to_integer (RD3)) <= get_wb (OP3);
+
+            if (OP3 /= "0000000") then
+                GR (to_integer (RD3)) <= get_wb (OP3);
+            end if;
         end if;
     end process;
     
