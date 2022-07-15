@@ -39,14 +39,12 @@ architecture Behavioral of alu is
 
     function ar_shift_right ( signal A1 : in unsigned (31 downto 0);
                               signal A2 : in unsigned (31 downto 0)
-                            )
-                            
-                            return unsigned is variable res : unsigned (31 downto 0);
+                            ) return unsigned is variable res : unsigned (31 downto 0);
+    variable shamt : integer := to_integer (A2 (5 downto 0));
 
-            variable shamt : integer := to_integer (A2 (5 downto 0));
-        begin
-            res := (31 downto (31 - shamt) => A1 (31)) & A1 (30 downto shamt);
-            return res;
+    begin
+        res := (31 downto (31 - shamt) => A1 (31)) & A1 (30 downto shamt);
+        return res;
     end ar_shift_right;
 
 begin

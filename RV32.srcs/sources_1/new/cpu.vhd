@@ -33,19 +33,22 @@ architecture Behavioral of cpu is
 
     component pmem
         port (
-            addr: in unsigned (31 downto 0);
-            data: out unsigned (31 downto 0)
+            PC   : in unsigned (31 downto 0);
+            OP   : in unsigned (2 downto 0);
+            ADDR : in unsigned (31 downto 0);
+            DATA : out unsigned (31 downto 0);
+            RES  : out unsigned (31 downto 0)
         );
     end component;
     
     component alu
         port (
-            clk : in std_logic;
+            clk  : in std_logic;
             ANEG : in std_logic;
-            OP : in unsigned (2 downto 0);
-            A1 : in unsigned (31 downto 0);
-            A2 : in unsigned (31 downto 0);
-            AR : out unsigned (31 downto 0)
+            OP   : in unsigned (2 downto 0);
+            A1   : in unsigned (31 downto 0);
+            A2   : in unsigned (31 downto 0);
+            AR   : out unsigned (31 downto 0)
         );
     end component;
 
@@ -85,16 +88,39 @@ architecture Behavioral of cpu is
     signal GR : register_array := (others => x"00000000");
     
     -- ALU Signals
-    signal AOP : unsigned (2 downto 0) := (others => '0');
-    signal A1 : unsigned (31 downto 0) := (others => '0');
-    signal A2 : unsigned (31 downto 0) := (others => '0');
-    signal AR : unsigned (31 downto 0) := (others => '0');
+    signal AOP  : unsigned (2 downto 0) := (others => '0');
+    signal A1   : unsigned (31 downto 0) := (others => '0');
+    signal A2   : unsigned (31 downto 0) := (others => '0');
+    signal AR   : unsigned (31 downto 0) := (others => '0');
     signal ANEG : std_logic;
+
+    -- Pmem Signals
+    signal POP   : unsigned (2 downto 0) := (others => '0');
+    signal PADDR : unsigned (31 downto 0) := (others => '0');
+    signal PRES  : unsigned (31 downto 0) := (others => '0');
     
-    constant OP_LUI : unsigned (6 downto 0) := "0110111";
-    constant OP_AUIPC : unsigned (6 downto 0) := "0010111";
-    constant OP_ADDI : unsigned (6 downto 0) := "0010011";
-    constant OP_ADD : unsigned (6 downto 0) := "0110011";
+    constant OP_LUI     : unsigned (6 downto 0) := "0110111";
+    constant OP_AUIPC   : unsigned (6 downto 0) := "0010111";
+    constant OP_ADDI    : unsigned (6 downto 0) := "0010011";
+    constant OP_ADD     : unsigned (6 downto 0) := "0110011";
+    constant OP_LB      : unsigned (6 downto 0) := "0000011"; 
+
+    impure function get_wb ( signal OP : in unsigned (6 downto 0)
+                           ) return unsigned is variable res : unsigned (31 downto 0);
+
+    begin
+        case OP is
+            when OP_LUI | OP_AUIPC | OP_ADDI | OP_ADD =>
+                res := AR;
+            when OP_LB =>
+                res := PRES;
+            when others =>
+                res := (others => '0');
+        end case;
+
+        return res;
+    end get_wb;
+
 begin
 
     -- Instruction Fetch
@@ -104,8 +130,8 @@ begin
             if (JMP = '1') then
                 PC <= PC2;
             else
-                PC <= PC + 1;
-                if PC = 31 then
+                PC <= PC + 4;
+                if PC = 28 then
                     PC <= (others => '0');
                 end if;
             end if;
@@ -134,7 +160,7 @@ begin
                     end if;
                     
                     if (RD3 = RS1i2) then
-                        A1 <= AR;
+                        A1 <= get_wb (OP3);
                     else
                         A1 <= GR (to_integer (RS1i2));
                     end if;
@@ -148,16 +174,19 @@ begin
                     end if;
                     
                     if (RD3 = RS1i2) then
-                        A1 <= AR;
+                        A1 <= get_wb (OP3);
                     else
                         A1 <= GR (to_integer (RS1i2));
                     end if;
                     
                     if (RD3 = RS2r2) then
-                        A2 <= AR;
+                        A2 <= get_wb (OP3);
                     else
                         A2 <= GR (to_integer (RS2r2));
                     end if;
+                when OP_LB =>
+                    POP <= FUNCT3i2;
+                    PADDR <= GR (to_integer (RS1i2)) + IMMi2;
                 when others =>
                     A1 <= (others => '0');
                     A2 <= (others => '0');
@@ -171,12 +200,12 @@ begin
     process (clk) begin
         if rising_edge (clk) then
             IR3 <= IR2;
-            GR (to_integer (RD3)) <= AR;
+            GR (to_integer (RD3)) <= get_wb (OP3);
         end if;
     end process;
     
     -- Connections to other components
-    U0 : pmem port map (addr=>PC, data=>PM);
+    U0 : pmem port map (PC=>PC, DATA=>PM, OP=>POP, ADDR=>PADDR, RES=>PRES);
 
     U1 : alu port map (clk=>clk, OP=>AOP, A1=>A1, A2=>A2, AR=>AR, ANEG=>ANEG); 
 
