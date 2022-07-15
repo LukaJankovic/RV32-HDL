@@ -71,6 +71,10 @@ architecture Behavioral of pmem is
         b"00100000",
         b"00100001",
         b"10000011",
+        b"00000000",
+        b"00100000",
+        b"01010010",
+        b"00000011",
         others => b"00000000"
     );
 
@@ -93,6 +97,23 @@ architecture Behavioral of pmem is
         return res;
     end read_consecutive;
 
+    function read_consecutive_high ( signal pmem  : in pmem_t;
+                                     signal start : in unsigned (31 downto 0);
+                                     size         : in integer
+                                   ) return unsigned is variable res : unsigned (31 downto 0);
+    
+    variable top : integer := 31 - (size * 8);
+
+    begin
+        for i in 0 to size - 1 loop
+            res (31 - (i * 8) downto 31 - (i * 8) - 7) := pmem (to_integer (start) + i);
+        end loop;
+
+        res (top downto 0) := (others => '0');
+
+        return res;
+    end read_consecutive_high;
+
     function read_32 ( signal  pmem : in pmem_t;
                         signal addr : in unsigned (31 downto 0)
                      ) return unsigned is variable res : unsigned (31 downto 0);
@@ -108,6 +129,10 @@ begin
     RES <=  read_consecutive (pmem_c, ADDR, 1) when (OP = "000") else
             read_consecutive (pmem_c, ADDR, 2) when (OP = "001") else
             read_consecutive (pmem_c, ADDR, 3) when (OP = "010") else
+
+            read_consecutive_high (pmem_c, ADDR, 1) when (OP = "100") else
+            read_consecutive_high (pmem_c, ADDR, 2) when (OP = "101") else
+
             (others => '0');
 
 end Behavioral;
