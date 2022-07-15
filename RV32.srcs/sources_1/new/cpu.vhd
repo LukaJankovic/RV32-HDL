@@ -121,6 +121,20 @@ architecture Behavioral of cpu is
         return res;
     end get_wb;
 
+    impure function data_fwd ( signal toread : in unsigned (4 downto 0);
+                               signal target : in unsigned (4 downto 0)
+                             ) return unsigned is variable res : unsigned (31 downto 0);
+
+    begin
+        if toread = target then
+            res := get_wb (OP3);
+        else
+            res := GR (to_integer (target));
+        end if;
+
+        return res;
+    end data_fwd;
+
 begin
 
     -- Instruction Fetch
@@ -159,12 +173,7 @@ begin
                         ANEG <= '1';
                     end if;
                     
-                    if (RD3 = RS1i2) then
-                        A1 <= get_wb (OP3);
-                    else
-                        A1 <= GR (to_integer (RS1i2));
-                    end if;
-                    
+                    A1 <= data_fwd (RD3, RS1i2);
                     A2 <= (31 downto IMMi2'length => '0') & IMMi2;
                 when OP_ADD =>
                     AOP <= FUNCT3i2;
@@ -173,17 +182,8 @@ begin
                         ANEG <= '1';
                     end if;
                     
-                    if (RD3 = RS1i2) then
-                        A1 <= get_wb (OP3);
-                    else
-                        A1 <= GR (to_integer (RS1i2));
-                    end if;
-                    
-                    if (RD3 = RS2r2) then
-                        A2 <= get_wb (OP3);
-                    else
-                        A2 <= GR (to_integer (RS2r2));
-                    end if;
+                    A1 <= data_fwd (RD3, RS1i2);
+                    A2 <= data_fwd (RD3, RS2r2);
                 when OP_LB =>
                     POP <= FUNCT3i2;
                     PADDR <= GR (to_integer (RS1i2)) + IMMi2;

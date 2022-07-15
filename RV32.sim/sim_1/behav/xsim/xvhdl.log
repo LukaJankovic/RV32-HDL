@@ -1,4 +1,2 @@
-INFO: [VRFC 10-163] Analyzing VHDL file "D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd" into library xil_defaultlib
-INFO: [VRFC 10-3107] analyzing entity 'cpu'
-WARNING: [VRFC 10-393] cannot access 'ar' from inside pure function 'get_wb'. [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:114]
-WARNING: [VRFC 10-393] cannot access 'pres' from inside pure function 'get_wb'. [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:116]
+INFO: [VRFC 10-163] Analyzing VHDL file "D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/pmem.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'pmem'
