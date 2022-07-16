@@ -59,11 +59,20 @@ architecture Behavioral of cpu is
         );
     end component;
 
-    signal IR1 : unsigned (31 downto 0);
+    component comparator
+        port (
+            OP   : in unsigned (2 downto 0);
+            C1   : in unsigned (31 downto 0);
+            C2   : in unsigned (31 downto 0);
+            CR   : out std_logic
+        );
+    end component;
+
+    signal IR1 : unsigned (31 downto 0) := (others => '0');
     
     alias OP1 : unsigned (6 downto 0) is IR1 (6 downto 0);
     
-    signal IR2 : unsigned (31 downto 0);
+    signal IR2 : unsigned (31 downto 0) := (others => '0');
     
     alias OP2 : unsigned (6 downto 0) is IR2 (6 downto 0);
     
@@ -78,17 +87,22 @@ architecture Behavioral of cpu is
     
     alias IMMLs2 : unsigned (4 downto 0) is IR2 (11 downto 7);
     alias IMMHs2 : unsigned (6 downto 0) is IR2 (31 downto 25);
+
+    alias IMMHb2 : unsigned (6 downto 0) is IR2 (31 downto 25);
+    alias IMMLb2 : unsigned (4 downto 0) is IR2 (11 downto 7);
     
-    signal PC2 : unsigned (31 downto 0);
-    signal JMP : std_logic;
+    signal PC2 : unsigned (31 downto 0) := (others => '0');
+    signal JMP : std_logic := '0';
     
-    signal IR3 : unsigned (31 downto 0);
+    signal IR3 : unsigned (31 downto 0) := (others => '0');
     
     alias OP3 : unsigned (6 downto 0) is IR3 (6 downto 0);
     alias RD3 : unsigned (4 downto 0) is IR3 (11 downto 7); 
     
     alias IMMu3 : unsigned (19 downto 0) is IR3 (31 downto 12);
 
+    alias IMMHb3 : unsigned (6 downto 0) is IR3 (31 downto 25);
+    alias IMMLb3 : unsigned (4 downto 0) is IR3 (11 downto 7);
         
     signal PC : unsigned (31 downto 0) := x"00000000";
     signal PM : unsigned (31 downto 0);
@@ -101,7 +115,13 @@ architecture Behavioral of cpu is
     signal A1   : unsigned (31 downto 0) := (others => '0');
     signal A2   : unsigned (31 downto 0) := (others => '0');
     signal AR   : unsigned (31 downto 0) := (others => '0');
-    signal ANEG : std_logic;
+    signal ANEG : std_logic := '0';
+    
+    -- Comparator Signals
+    signal COP  : unsigned (2 downto 0) := (others => '0');
+    signal C1   : unsigned (31 downto 0) := (others => '0');
+    signal C2   : unsigned (31 downto 0) := (others => '0');
+    signal CR   : std_logic;
 
     -- Pmem Signals
     signal POP   : unsigned (2 downto 0) := (others => '0');
@@ -118,6 +138,7 @@ architecture Behavioral of cpu is
     constant OP_ADD     : unsigned (6 downto 0) := "0110011";
     constant OP_LB      : unsigned (6 downto 0) := "0000011"; 
     constant OP_SB      : unsigned (6 downto 0) := "0100011";
+    constant OP_BEQ     : unsigned (6 downto 0) := "1100011";
 
     impure function get_wb ( signal OP : in unsigned (6 downto 0)
                            ) return unsigned is variable res : unsigned (31 downto 0);
@@ -155,6 +176,10 @@ begin
     process (clk) begin
         if rising_edge(clk) then
             IR1 <= PM;
+            if (OP1 = OP_BEQ) then
+                IR1 <= (others => '0');
+            end if;
+
             if (JMP = '1') then
                 PC <= PC2;
             else
@@ -165,14 +190,13 @@ begin
             end if;
         end if;
     end process;
-    
+
     -- Register Read
     process (clk) begin
         if rising_edge (clk) then
             AOP <= "000";
             IR2 <= IR1;
             ANEG <= '0';
-            JMP <= '0';
             WE <= '0';
             case OP2 is
                 when OP_LUI =>
@@ -219,12 +243,19 @@ begin
                         when others =>
                             WE <= '0';
                     end case;
-            when others =>
-                    A1 <= (others => '0');
-                    A2 <= (others => '0');
-                    ANEG <= '0';
-                    JMP <= '0';
-            end case;
+                when OP_BEQ =>
+                    COP <= FUNCT3i2;
+                    C1 <= data_fwd (RD3, RS1i2);
+                    C2 <= data_fwd (RD3, RS2r2);
+                    PC2 <= PC - 4 + ((31 downto 12 => IMMHb2 (6)) & IMMLb2 (0) & IMMHb2 (5 downto 0) & IMMLb2 (4 downto 1) & "0");
+                when others =>
+                        A1 <= (others => '0');
+                        A2 <= (others => '0');
+                        C1 <= (others => '0');
+                        C2 <= (others => '0');
+                        ANEG <= '0';
+                        WE <= '0';
+                end case;
         end if;
     end process;
     
@@ -236,6 +267,12 @@ begin
             if (OP3 = OP_LUI or OP3 = OP_AUIPC or OP3 = OP_ADDI or OP3 = OP_ADD or OP3 = OP_ADDI or OP3 = OP_LB) then
                 GR (to_integer (RD3)) <= get_wb (OP3);
             end if;
+
+            if (OP3 = OP_BEQ and CR = '1') then
+                JMP <= '1';
+            else
+                JMP <= '0';
+            end if;
         end if;
     end process;
     
@@ -243,5 +280,7 @@ begin
     U0 : pmem port map (clk=>clk, PC=>PC, PCOUT=>PM, OP=>POP, ADDR=>PADDR, RES=>PRES, WE=>WE, WADDR=>WADDR, WDATA=>WDATA);
 
     U1 : alu port map (clk=>clk, OP=>AOP, A1=>A1, A2=>A2, AR=>AR, ANEG=>ANEG); 
+
+    U2 : comparator port map (OP=>COP, C1=>C1, C2=>C2, CR=>CR); 
 
 end Behavioral;

@@ -1,0 +1,42 @@
+
+*** Running vivado
+    with args -log cpu.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source cpu.tcl
+
+
+
+****** Vivado v2022.1 (64-bit)
+  **** SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
+  **** IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+source cpu.tcl -notrace
+Command: synth_design -top cpu -part xc7z020clg400-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 22744
+---------------------------------------------------------------------------------
+Starting Synthesize : Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 1279.398 ; gain = 0.000
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'cpu' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:32]
+INFO: [Synth 8-3491] module 'pmem' declared at 'D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/pmem.vhd:26' bound to instance 'U0' of component 'pmem' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:279]
+INFO: [Synth 8-638] synthesizing module 'pmem' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/pmem.vhd:44]
+WARNING: [Synth 8-3919] null assignment ignored [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/pmem.vhd:82]
+INFO: [Synth 8-256] done synthesizing module 'pmem' (0#1) [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/pmem.vhd:44]
+INFO: [Synth 8-3491] module 'alu' declared at 'D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/alu.vhd:26' bound to instance 'U1' of component 'alu' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:281]
+INFO: [Synth 8-638] synthesizing module 'alu' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/alu.vhd:38]
+ERROR: [Synth 8-561] range expression could not be resolved to a constant [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/alu.vhd:46]
+ERROR: [Synth 8-211] could not evaluate expression: aggregate choice expression [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/alu.vhd:46]
+ERROR: [Synth 8-285] failed synthesizing module 'alu' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/alu.vhd:38]
+ERROR: [Synth 8-285] failed synthesizing module 'cpu' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:32]
+---------------------------------------------------------------------------------
+Finished Synthesize : Time (s): cpu = 00:00:04 ; elapsed = 00:00:06 . Memory (MB): peak = 1279.398 ; gain = 0.000
+---------------------------------------------------------------------------------
+synthesize failed
+INFO: [Common 17-83] Releasing license: Synthesis
+11 Infos, 1 Warnings, 0 Critical Warnings and 5 Errors encountered.
+synth_design failed
+ERROR: [Common 17-69] Command failed: Vivado Synthesis failed
+INFO: [Common 17-206] Exiting Vivado at Sun Jul 17 00:46:29 2022...
