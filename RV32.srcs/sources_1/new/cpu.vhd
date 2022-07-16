@@ -33,11 +33,18 @@ architecture Behavioral of cpu is
 
     component pmem
         port (
-            PC   : in unsigned (31 downto 0);
+            clk : in std_logic; 
+
+            PC    : in unsigned (31 downto 0);
+            PCOUT : out unsigned (31 downto 0);
+ 
             OP   : in unsigned (2 downto 0);
             ADDR : in unsigned (31 downto 0);
-            DATA : out unsigned (31 downto 0);
-            RES  : out unsigned (31 downto 0)
+            RES  : out unsigned (31 downto 0);
+ 
+            WE    : in std_logic;
+            WADDR : in unsigned (31 downto 0);
+            WDATA : in unsigned (31 downto 0)
         );
     end component;
     
@@ -59,8 +66,7 @@ architecture Behavioral of cpu is
     signal IR2 : unsigned (31 downto 0);
     
     alias OP2 : unsigned (6 downto 0) is IR2 (6 downto 0);
-    --alias RD2 : unsigned (4 downto 0) is IR2 (11 downto 7);
-     
+    
     alias IMMu2 : unsigned (19 downto 0) is IR2 (31 downto 12);
     
     alias IMMi2 : unsigned (11 downto 0) is IR2 (31 downto 20);
@@ -69,6 +75,9 @@ architecture Behavioral of cpu is
     
     alias RS2r2 : unsigned (4 downto 0) is IR2 (24 downto 20);
     alias FUNCT7r2 : unsigned (6 downto 0) is IR2 (31 downto 25);
+    
+    alias IMMLs2 : unsigned (4 downto 0) is IR2 (11 downto 7);
+    alias IMMHs2 : unsigned (6 downto 0) is IR2 (31 downto 25);
     
     signal PC2 : unsigned (31 downto 0);
     signal JMP : std_logic;
@@ -98,12 +107,17 @@ architecture Behavioral of cpu is
     signal POP   : unsigned (2 downto 0) := (others => '0');
     signal PADDR : unsigned (31 downto 0) := (others => '0');
     signal PRES  : unsigned (31 downto 0) := (others => '0');
+
+    signal WE    : std_logic := '0';
+    signal WADDR : unsigned (31 downto 0) := (others => '0');
+    signal WDATA : unsigned (31 downto 0) := (others => '0');
     
     constant OP_LUI     : unsigned (6 downto 0) := "0110111";
     constant OP_AUIPC   : unsigned (6 downto 0) := "0010111";
     constant OP_ADDI    : unsigned (6 downto 0) := "0010011";
     constant OP_ADD     : unsigned (6 downto 0) := "0110011";
     constant OP_LB      : unsigned (6 downto 0) := "0000011"; 
+    constant OP_SB      : unsigned (6 downto 0) := "0100011";
 
     impure function get_wb ( signal OP : in unsigned (6 downto 0)
                            ) return unsigned is variable res : unsigned (31 downto 0);
@@ -159,6 +173,7 @@ begin
             IR2 <= IR1;
             ANEG <= '0';
             JMP <= '0';
+            WE <= '0';
             case OP2 is
                 when OP_LUI =>
                     A1 <= IMMu2 & (31 downto IMMu3'length => '0');
@@ -187,7 +202,24 @@ begin
                 when OP_LB =>
                     POP <= FUNCT3i2;
                     PADDR <= data_fwd (RD3, RS1i2) + IMMi2;
-                when others =>
+                when OP_SB =>
+                    case FUNCT3i2 is
+                        when "000" =>
+                            WADDR <= data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2));
+                            WDATA <= data_fwd (RD3, RS2r2) and x"000000FF";
+                            WE <= '1';
+                        when "001" =>
+                            WADDR <= data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2));
+                            WDATA <= data_fwd (RD3, RS2r2) and x"0000FFFF";
+                            WE <= '1';
+                        when "010" =>
+                            WADDR <= data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2));
+                            WDATA <= data_fwd (RD3, RS2r2);
+                            WE <= '1';
+                        when others =>
+                            WE <= '0';
+                    end case;
+            when others =>
                     A1 <= (others => '0');
                     A2 <= (others => '0');
                     ANEG <= '0';
@@ -201,14 +233,14 @@ begin
         if rising_edge (clk) then
             IR3 <= IR2;
 
-            if (OP3 /= "0000000") then
+            if (OP3 = OP_LUI or OP3 = OP_AUIPC or OP3 = OP_ADDI or OP3 = OP_ADD or OP3 = OP_ADDI or OP3 = OP_LB) then
                 GR (to_integer (RD3)) <= get_wb (OP3);
             end if;
         end if;
     end process;
     
     -- Connections to other components
-    U0 : pmem port map (PC=>PC, DATA=>PM, OP=>POP, ADDR=>PADDR, RES=>PRES);
+    U0 : pmem port map (clk=>clk, PC=>PC, PCOUT=>PM, OP=>POP, ADDR=>PADDR, RES=>PRES, WE=>WE, WADDR=>WADDR, WDATA=>WDATA);
 
     U1 : alu port map (clk=>clk, OP=>AOP, A1=>A1, A2=>A2, AR=>AR, ANEG=>ANEG); 
 

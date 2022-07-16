@@ -25,11 +25,18 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity pmem is
 
-    Port ( PC : in unsigned (31 downto 0);
-           OP : in unsigned (2 downto 0);
+    Port ( clk : in std_logic; 
+
+           PC    : in unsigned (31 downto 0);
+           PCOUT : out unsigned (31 downto 0);
+
+           OP   : in unsigned (2 downto 0);
            ADDR : in unsigned (31 downto 0);
-           DATA : out unsigned (31 downto 0);
-           RES : out unsigned (31 downto 0)
+           RES  : out unsigned (31 downto 0);
+
+           WE    : in std_logic;
+           WADDR : in unsigned (31 downto 0);
+           WDATA : in unsigned (31 downto 0)
            );
            
 end pmem;
@@ -75,6 +82,14 @@ architecture Behavioral of pmem is
         b"00100000",
         b"01010010",
         b"00000011",
+        b"00011110",
+        b"00100101",
+        b"00001010",
+        b"00100011",
+        b"00011111",
+        b"01000101",
+        b"00000010",
+        b"10000011",
         others => b"00000000"
     );
 
@@ -124,7 +139,17 @@ architecture Behavioral of pmem is
 
 begin
 
-    DATA <= read_32 (pmem_c, PC);
+    process (clk) begin
+        if rising_edge (clk) then
+            if (WE = '1') then
+                for i in 0 to 3 loop
+                    pmem_c (to_integer (WADDR) + i) <= WDATA (i * 8 + 7 downto i * 8);
+                end loop;
+            end if;
+        end if;
+    end process;
+
+    PCOUT <= read_32 (pmem_c, PC);
 
     RES <=  read_consecutive (pmem_c, ADDR, 1) when (OP = "000") else
             read_consecutive (pmem_c, ADDR, 2) when (OP = "001") else
