@@ -42,8 +42,20 @@ architecture Behavioral of alu is
                             ) return unsigned is variable res : unsigned (31 downto 0);
     variable shamt : integer := to_integer (A2 (5 downto 0));
 
+    subtype shamt_range is natural range 0 to 31;
+
     begin
-        res := (31 downto (31 - shamt) => A1 (31)) & A1 (30 downto shamt);
+
+        for i in shamt_range loop
+            if (i < shamt) then
+                res (31 - i) := A1 (31);
+            end if;
+            
+            if (i <= 31 - shamt) then
+                res (31 - shamt - i) := A1 (31 - i);
+            end if;
+        end loop;
+
         return res;
     end ar_shift_right;
 
