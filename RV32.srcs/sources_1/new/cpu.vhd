@@ -75,7 +75,7 @@ architecture Behavioral of cpu is
     signal IR2 : unsigned (31 downto 0) := (others => '0');
     
     alias OP2 : unsigned (6 downto 0) is IR2 (6 downto 0);
-    
+ 
     alias IMMu2 : unsigned (19 downto 0) is IR2 (31 downto 12);
     
     alias IMMi2 : unsigned (11 downto 0) is IR2 (31 downto 20);
@@ -175,14 +175,12 @@ begin
     -- Instruction Fetch
     process (clk) begin
         if rising_edge(clk) then
-            IR1 <= PM;
-            if (OP1 = OP_BEQ) then
-                IR1 <= (others => '0');
-            end if;
-
             if (JMP = '1') then
                 PC <= PC2;
+            elsif (OP1 = OP_BEQ or OP2 = OP_BEQ or OP3 = OP_BEQ) then
+                IR1 <= (others => '0');
             else
+                IR1 <= PM;
                 PC <= PC + 4;
                 if PC = 1020 then -- temporary memory overflow fix
                     PC <= (others => '0');
