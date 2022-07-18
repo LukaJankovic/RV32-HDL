@@ -25,7 +25,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity cpu is
 
-    Port (clk : in std_logic);
+    Port (  clk : in std_logic
+    );
     
 end cpu;
 
@@ -139,13 +140,14 @@ architecture Behavioral of cpu is
     constant OP_LB      : unsigned (6 downto 0) := "0000011"; 
     constant OP_SB      : unsigned (6 downto 0) := "0100011";
     constant OP_BEQ     : unsigned (6 downto 0) := "1100011";
+    constant OP_JAL     : unsigned (6 downto 0) := "1101111";
 
     impure function get_wb ( signal OP : in unsigned (6 downto 0)
                            ) return unsigned is variable res : unsigned (31 downto 0);
 
     begin
         case OP is
-            when OP_LUI | OP_AUIPC | OP_ADDI | OP_ADD =>
+            when OP_LUI | OP_AUIPC | OP_ADDI | OP_ADD | OP_LB | OP_JAL =>
                 res := AR;
             when OP_LB =>
                 res := PRES;
@@ -177,7 +179,7 @@ begin
         if rising_edge(clk) then
             if (JMP = '1') then
                 PC <= PC2;
-            elsif (OP1 = OP_BEQ or OP2 = OP_BEQ or OP3 = OP_BEQ) then
+            elsif ((OP1 = OP_BEQ or OP2 = OP_BEQ or OP3 = OP_BEQ) or (OP1 = OP_JAL or OP2 = OP_JAL or OP3 = OP_JAL)) then
                 IR1 <= (others => '0');
             else
                 IR1 <= PM;
@@ -198,11 +200,11 @@ begin
             WE <= '0';
             case OP2 is
                 when OP_LUI =>
-                    A1 <= IMMu2 & (31 downto IMMu3'length => '0');
-                    A2 <= (others => '0');
+                    A1 <= (others => '0');
+                    A2 <= IMMu2 & (31 downto IMMu3'length => '0');
                 when OP_AUIPC =>
-                    A1 <= IMMu2 & (31 downto IMMu2'length => '0');
-                    A2 <= PC;
+                    A1 <= PC;
+                    A2 <= IMMu2 & (31 downto IMMu2'length => '0');
                 when OP_ADDI =>
                     AOP <= FUNCT3i2;
                     
@@ -211,7 +213,7 @@ begin
                     end if;
                     
                     A1 <= data_fwd (RD3, RS1i2);
-                    A2 <= (31 downto IMMi2'length => '0') & IMMi2;
+                    A2 <= (31 downto IMMi2'length => IMMi2 (11)) & IMMi2;
                 when OP_ADD =>
                     AOP <= FUNCT3i2;
                     
@@ -246,6 +248,10 @@ begin
                     C1 <= data_fwd (RD3, RS1i2);
                     C2 <= data_fwd (RD3, RS2r2);
                     PC2 <= PC - 4 + ((31 downto 12 => IMMHb2 (6)) & IMMLb2 (0) & IMMHb2 (5 downto 0) & IMMLb2 (4 downto 1) & "0");
+                when OP_JAL =>
+                    A1 <= PC;
+                    A2 <= x"00000004";
+                    PC2 <= PC - 4 + ((31 downto 20 => IMMu2 (19)) & IMMu2 (7 downto 0) & IMMu2 (8) & IMMu2 (18 downto 9) & "0");
                 when others =>
                         A1 <= (others => '0');
                         A2 <= (others => '0');
@@ -262,15 +268,17 @@ begin
         if rising_edge (clk) then
             IR3 <= IR2;
 
-            if (OP3 = OP_LUI or OP3 = OP_AUIPC or OP3 = OP_ADDI or OP3 = OP_ADD or OP3 = OP_ADDI or OP3 = OP_LB) then
+            if (OP3 = OP_LUI or OP3 = OP_AUIPC or OP3 = OP_ADDI or OP3 = OP_ADD or OP3 = OP_LB or OP3 = OP_JAL) then
                 GR (to_integer (RD3)) <= get_wb (OP3);
             end if;
 
-            if (OP3 = OP_BEQ and CR = '1') then
+            if ((OP3 = OP_BEQ and CR = '1') or OP3 = OP_JAL) then
                 JMP <= '1';
             else
                 JMP <= '0';
             end if;
+
+            GR (0) <= (others => '0');
         end if;
     end process;
     
