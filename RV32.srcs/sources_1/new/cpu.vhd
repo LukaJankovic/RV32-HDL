@@ -141,6 +141,7 @@ architecture Behavioral of cpu is
     constant OP_SB      : unsigned (6 downto 0) := "0100011";
     constant OP_BEQ     : unsigned (6 downto 0) := "1100011";
     constant OP_JAL     : unsigned (6 downto 0) := "1101111";
+    constant OP_JALR    : unsigned (5 downto 0) := "1100111";
 
     impure function get_wb ( signal OP : in unsigned (6 downto 0)
                            ) return unsigned is variable res : unsigned (31 downto 0);
@@ -179,7 +180,7 @@ begin
         if rising_edge(clk) then
             if (JMP = '1') then
                 PC <= PC2;
-            elsif ((OP1 = OP_BEQ or OP2 = OP_BEQ or OP3 = OP_BEQ) or (OP1 = OP_JAL or OP2 = OP_JAL or OP3 = OP_JAL)) then
+            elsif ((OP1 = OP_BEQ or OP2 = OP_BEQ or OP3 = OP_BEQ) or (OP1 = OP_JAL or OP2 = OP_JAL or OP3 = OP_JAL) or (OP1 = OP_JALR or OP2 = OP_JALR or OP3 = OP_JALR)) then
                 IR1 <= (others => '0');
             else
                 IR1 <= PM;
@@ -252,6 +253,10 @@ begin
                     A1 <= PC;
                     A2 <= x"00000004";
                     PC2 <= PC - 4 + ((31 downto 20 => IMMu2 (19)) & IMMu2 (7 downto 0) & IMMu2 (8) & IMMu2 (18 downto 9) & "0");
+                when OP_JALR =>
+                    A1 <= PC;
+                    A2 <= x"00000004";
+                    PC2 <= data_fwd (RD3, RS1i2) + (31 downto 20 => IMMi2 (11)) & IMMi2 (11 downto 1) & "0";
                 when others =>
                         A1 <= (others => '0');
                         A2 <= (others => '0');
@@ -268,11 +273,11 @@ begin
         if rising_edge (clk) then
             IR3 <= IR2;
 
-            if (OP3 = OP_LUI or OP3 = OP_AUIPC or OP3 = OP_ADDI or OP3 = OP_ADD or OP3 = OP_LB or OP3 = OP_JAL) then
+            if (OP3 = OP_LUI or OP3 = OP_AUIPC or OP3 = OP_ADDI or OP3 = OP_ADD or OP3 = OP_LB or OP3 = OP_JAL or OP3 = OP_JALR) then
                 GR (to_integer (RD3)) <= get_wb (OP3);
             end if;
 
-            if ((OP3 = OP_BEQ and CR = '1') or OP3 = OP_JAL) then
+            if ((OP3 = OP_BEQ and CR = '1') or OP3 = OP_JAL or OP3 = OP_JALR) then
                 JMP <= '1';
             else
                 JMP <= '0';
