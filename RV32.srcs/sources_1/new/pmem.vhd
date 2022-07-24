@@ -7,7 +7,7 @@
 -- Module Name: pmem - Behavioral
 -- Project Name: 
 -- Target Devices: 
--- Tool Versions: 
+-- Tool Versions:   
 -- Description: 
 -- 
 -- Dependencies: 
@@ -22,6 +22,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use STD.TEXTIO.ALL;
 
 entity pmem is
 
@@ -43,85 +44,24 @@ end pmem;
 
 architecture Behavioral of pmem is
 
-    type pmem_t is array (0 to 1023) of unsigned (7 downto 0); -- 1 KiB
-    constant pmem_init : pmem_t :=
-    (
-        b"00000000",
-        b"10100000",
-        b"00000000",
-        b"10010011",
-        b"00000000",
-        b"00100000",
-        b"00000001",
-        b"00010011",
-        b"00000000",
-        b"00000000",
-        b"00000001",
-        b"10010011",
-        b"00000000",
-        b"00000000",
-        b"00000010",
-        b"10010011",
-        b"00000000",
-        b"00010000",
-        b"01001010",
-        b"01100011",
-        b"00000000",
-        b"00010000",
-        b"00000001",
-        b"10010011",
-        b"11111111",
-        b"11110000",
-        b"00000010",
-        b"00010011",
-        b"00000000",
-        b"01000000",
-        b"11000000",
-        b"10110011",
-        b"00000000",
-        b"00010000",
-        b"10000000",
-        b"10010011",
-        b"00000000",
-        b"00010000",
-        b"00001000",
-        b"01100011",
-        b"00000000",
-        b"00100010",
-        b"10000010",
-        b"10110011",
-        b"11111111",
-        b"11110000",
-        b"10000000",
-        b"10010011",
-        b"11111111",
-        b"01011111",
-        b"11110000",
-        b"01101111",
-        b"00000000",
-        b"00110000",
-        b"00001000",
-        b"01100011",
-        b"11111111",
-        b"11110000",
-        b"00000010",
-        b"00010011",
-        b"00000000",
-        b"01000010",
-        b"11000010",
-        b"10110011",
-        b"00000000",
-        b"00010010",
-        b"10000010",
-        b"10010011",
-        b"00000000",
-        b"00000000",
-        b"00000000",
-        b"01101111",
-        others => b"00000000"
-    );
+    type pmem_t is array (0 to 1023) of bit_vector (7 downto 0); -- 1 KiB
 
-    signal pmem_c : pmem_t := pmem_init;
+    -- Source / Credit:
+    -- https://docs.xilinx.com/r/en-US/ug901-vivado-synthesis/Initializing-Block-RAM-From-an-External-Data-File-VHDL
+    impure function pmem_init (file_name : in string) return pmem_t is
+        FILE bin_file : text is in file_name;
+        variable bin_file_line : line;
+        variable pmem : pmem_t;
+    begin
+        for i in pmem_t'range loop
+            readline (bin_file, bin_file_line);
+            read (bin_file_line, pmem (i));
+        end loop;
+        
+        return pmem;
+    end function;
+
+    signal pmem_c : pmem_t := pmem_init ("test.mem");
 
     function read_consecutive ( signal pmem  : in pmem_t;
                                 signal start : in unsigned (31 downto 0);
@@ -134,7 +74,7 @@ architecture Behavioral of pmem is
         res (31 downto (size * 8)) := (others => '0');
 
         for i in 0 to size - 1 loop
-            res (top - (i * 8) downto top - (i * 8) - 7) := pmem (to_integer (start) + i);
+            res (top - (i * 8) downto top - (i * 8) - 7) := unsigned (to_stdlogicvector (pmem (to_integer (start) + i)));
         end loop;
 
         return res;
@@ -149,7 +89,7 @@ architecture Behavioral of pmem is
 
     begin
         for i in 0 to size - 1 loop
-            res (31 - (i * 8) downto 31 - (i * 8) - 7) := pmem (to_integer (start) + i);
+            res (31 - (i * 8) downto 31 - (i * 8) - 7) := unsigned (to_stdlogicvector (pmem (to_integer (start) + i)));
         end loop;
 
         res (top downto 0) := (others => '0');
@@ -171,7 +111,7 @@ begin
         if rising_edge (clk) then
             if (WE = '1') then
                 for i in 0 to 3 loop
-                    pmem_c (to_integer (WADDR) + i) <= WDATA (i * 8 + 7 downto i * 8);
+                    pmem_c (to_integer (WADDR) + i) <= to_bitvector (std_ulogic_vector (WDATA (i * 8 + 7 downto i * 8)));
                 end loop;
             end if;
         end if;

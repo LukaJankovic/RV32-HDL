@@ -22,6 +22,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use STD.TEXTIO.ALL;
+
 
 entity cpu is
 
@@ -141,7 +143,7 @@ architecture Behavioral of cpu is
     constant OP_SB      : unsigned (6 downto 0) := "0100011";
     constant OP_BEQ     : unsigned (6 downto 0) := "1100011";
     constant OP_JAL     : unsigned (6 downto 0) := "1101111";
-    constant OP_JALR    : unsigned (5 downto 0) := "1100111";
+    constant OP_JALR    : unsigned (6 downto 0) := "1100111";
 
     impure function get_wb ( signal OP : in unsigned (6 downto 0)
                            ) return unsigned is variable res : unsigned (31 downto 0);
