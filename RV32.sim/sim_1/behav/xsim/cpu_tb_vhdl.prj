@@ -4,6 +4,10 @@ vhdl xil_defaultlib  \
 "../../../../RV32.srcs/sources_1/new/comparator.vhd" \
 "../../../../RV32.srcs/sources_1/new/cpu.vhd" \
 "../../../../RV32.srcs/sources_1/new/pmem.vhd" \
+"../../../../RV32.ip_user_files/bd/design_1/ip/design_1_cpu_0_0_1/sim/design_1_cpu_0_0.vhd" \
+"../../../../RV32.ip_user_files/bd/design_1/ip/design_1_pmem_0_0_1/sim/design_1_pmem_0_0.vhd" \
+"../../../../RV32.ip_user_files/bd/design_1/sim/design_1.vhd" \
+"../../../../RV32.gen/sources_1/bd/design_1/hdl/design_1_wrapper.vhd" \
 "../../../../RV32.srcs/sim_1/new/cpu_tb.vhd" \
 
 # Do not sort compile order

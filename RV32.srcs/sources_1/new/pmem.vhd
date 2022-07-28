@@ -28,16 +28,16 @@ entity pmem is
 
     Port ( clk : in std_logic; 
 
-           PC    : in unsigned (31 downto 0);
-           PCOUT : out unsigned (31 downto 0);
+           PC    : in std_logic_vector (31 downto 0);
+           PM    : out std_logic_vector (31 downto 0);
 
-           OP   : in unsigned (2 downto 0);
-           ADDR : in unsigned (31 downto 0);
-           RES  : out unsigned (31 downto 0);
+           OP   : in std_logic_vector (2 downto 0);
+           ADDR : in std_logic_vector (31 downto 0);
+           RES  : out std_logic_vector (31 downto 0);
 
            WE    : in std_logic;
-           WADDR : in unsigned (31 downto 0);
-           WDATA : in unsigned (31 downto 0)
+           WADDR : in std_logic_vector (31 downto 0);
+           WDATA : in std_logic_vector (31 downto 0)
            );
            
 end pmem;
@@ -64,9 +64,9 @@ architecture Behavioral of pmem is
     signal pmem_c : pmem_t := pmem_init("D:\Documents\HDL\RV32\RV32.prog\test");
 
     function read_consecutive ( signal pmem  : in pmem_t;
-                                signal start : in unsigned (9 downto 0);
+                                signal start : in std_logic_vector (9 downto 0);
                                 size         : in integer
-                              ) return unsigned is variable res : unsigned (31 downto 0);
+                              ) return std_logic_vector is variable res : std_logic_vector (31 downto 0);
     
     variable top : integer := (size * 8) - 1;
 
@@ -74,22 +74,22 @@ architecture Behavioral of pmem is
         res (31 downto (size * 8)) := (others => '0');
 
         for i in 0 to size - 1 loop
-            res (top - (i * 8) downto top - (i * 8) - 7) := unsigned (to_stdlogicvector (pmem (to_integer (start) + i)));
+            res (top - (i * 8) downto top - (i * 8) - 7) := to_stdlogicvector (pmem (to_integer (unsigned (start)) + i));
         end loop;
 
         return res;
     end read_consecutive;
 
     function read_consecutive_high ( signal pmem  : in pmem_t;
-                                     signal start : in unsigned (9 downto 0);
+                                     signal start : in std_logic_vector (9 downto 0);
                                      size         : in integer
-                                   ) return unsigned is variable res : unsigned (31 downto 0);
+                                   ) return std_logic_vector is variable res : std_logic_vector (31 downto 0);
     
     variable top : integer := 31 - (size * 8);
 
     begin
         for i in 0 to size - 1 loop
-            res (31 - (i * 8) downto 31 - (i * 8) - 7) := unsigned (to_stdlogicvector (pmem (to_integer (start) + i)));
+            res (31 - (i * 8) downto 31 - (i * 8) - 7) := to_stdlogicvector (pmem (to_integer (unsigned (start)) + i));
         end loop;
 
         res (top downto 0) := (others => '0');
@@ -98,8 +98,8 @@ architecture Behavioral of pmem is
     end read_consecutive_high;
 
     function read_32 ( signal  pmem : in pmem_t;
-                        signal addr : in unsigned (9 downto 0)
-                     ) return unsigned is variable res : unsigned (31 downto 0);
+                        signal addr : in std_logic_vector (9 downto 0)
+                     ) return std_logic_vector is variable res : std_logic_vector (31 downto 0);
     begin
         res := read_consecutive (pmem, addr, 4);
         return res;
@@ -111,13 +111,13 @@ begin
         if rising_edge (clk) then
             if (WE = '1') then
                 for i in 0 to 3 loop
-                    pmem_c (to_integer (WADDR (9 downto 0)) + 3 - i) <= to_bitvector (std_ulogic_vector (WDATA (i * 8 + 7 downto i * 8)));
+                    pmem_c (to_integer (unsigned (WADDR (9 downto 0))) + 3 - i) <= to_bitvector (std_ulogic_vector (WDATA (i * 8 + 7 downto i * 8)));
                 end loop;
             end if;
         end if;
     end process;
 
-    PCOUT <= read_32 (pmem_c, PC (9 downto 0));
+    PM <= read_32 (pmem_c, PC (9 downto 0));
 
     RES <=  read_consecutive (pmem_c, ADDR (9 downto 0), 1) when (OP = "000") else
             read_consecutive (pmem_c, ADDR (9 downto 0), 2) when (OP = "001") else

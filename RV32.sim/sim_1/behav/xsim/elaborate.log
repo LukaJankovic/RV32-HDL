@@ -3,7 +3,6 @@ Copyright 1986-1999, 2001-2022 Xilinx, Inc. All Rights Reserved.
 Running: C:/Xilinx/Vivado/2022.1/bin/unwrapped/win64.o/xelab.exe --incr --debug typical --relax --mt 2 -L xil_defaultlib -L secureip -L xpm --snapshot cpu_tb_behav xil_defaultlib.cpu_tb -log elaborate.log 
 Using 2 slave threads.
 Starting static elaboration
-WARNING: [VRFC 10-9334] readline() is called past the end of file 'bin_file' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/cpu.vhd:44]
 WARNING: [VRFC 10-9334] readline() is called past the end of file 'bin_file' [D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/pmem.vhd:57]
 Completed static elaboration
 INFO: [XSIM 43-4323] No Change in HDL. Linking previously generated obj files to create kernel

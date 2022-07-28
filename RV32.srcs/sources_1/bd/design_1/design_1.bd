@@ -1,16 +1,18 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x0",
+      "boundary_crc": "0x6A4A8B1948FBAA45",
       "device": "xc7z020clg400-1",
       "gen_directory": "../../../../RV32.gen/sources_1/bd/design_1",
       "name": "design_1",
       "rev_ctrl_bd_flag": "RevCtrlBdOff",
       "synth_flow_mode": "Hierarchical",
-      "tool_version": "2022.1"
+      "tool_version": "2022.1",
+      "validated": "true"
     },
     "design_tree": {
-      "cpu_0": ""
+      "cpu_0": "",
+      "pmem_0": ""
     },
     "ports": {
       "clk": {
@@ -32,6 +34,99 @@
           "clk": {
             "type": "clk",
             "direction": "I"
+          },
+          "PC_OUT": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "PM": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "POP": {
+            "direction": "O",
+            "left": "2",
+            "right": "0"
+          },
+          "PADDR": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "PRES": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "WE": {
+            "direction": "O"
+          },
+          "WADDR": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "WDATA": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
+      },
+      "pmem_0": {
+        "vlnv": "xilinx.com:module_ref:pmem:1.0",
+        "xci_name": "design_1_pmem_0_0",
+        "xci_path": "ip\\design_1_pmem_0_0_1\\design_1_pmem_0_0.xci",
+        "inst_hier_path": "pmem_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "pmem",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I"
+          },
+          "PC": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "PM": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "OP": {
+            "direction": "I",
+            "left": "2",
+            "right": "0"
+          },
+          "ADDR": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "RES": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "WE": {
+            "direction": "I"
+          },
+          "WADDR": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "WDATA": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
           }
         }
       }
@@ -40,7 +135,56 @@
       "clk_1": {
         "ports": [
           "clk",
-          "cpu_0/clk"
+          "cpu_0/clk",
+          "pmem_0/clk"
+        ]
+      },
+      "cpu_0_PADDR": {
+        "ports": [
+          "cpu_0/PADDR",
+          "pmem_0/ADDR"
+        ]
+      },
+      "cpu_0_PC": {
+        "ports": [
+          "cpu_0/PC_OUT",
+          "pmem_0/PC"
+        ]
+      },
+      "cpu_0_POP": {
+        "ports": [
+          "cpu_0/POP",
+          "pmem_0/OP"
+        ]
+      },
+      "cpu_0_WADDR": {
+        "ports": [
+          "cpu_0/WADDR",
+          "pmem_0/WADDR"
+        ]
+      },
+      "cpu_0_WDATA": {
+        "ports": [
+          "cpu_0/WDATA",
+          "pmem_0/WDATA"
+        ]
+      },
+      "cpu_0_WE": {
+        "ports": [
+          "cpu_0/WE",
+          "pmem_0/WE"
+        ]
+      },
+      "pmem_0_PCOUT": {
+        "ports": [
+          "pmem_0/PM",
+          "cpu_0/PM"
+        ]
+      },
+      "pmem_0_RES": {
+        "ports": [
+          "pmem_0/RES",
+          "cpu_0/PRES"
         ]
       }
     }

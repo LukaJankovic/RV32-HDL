@@ -36,7 +36,7 @@ entity cpu_tb is
 end cpu_tb;
 
 architecture Behavioral of cpu_tb is
-    component cpu
+    component design_1_wrapper
         port (clk : in std_logic);
     end component;
     
@@ -45,7 +45,7 @@ architecture Behavioral of cpu_tb is
     constant period : time := 10 ns;
 begin
 
-    uut: cpu port map (clk);
+    uut: design_1_wrapper port map (clk);
     
     clk_process : process
     begin

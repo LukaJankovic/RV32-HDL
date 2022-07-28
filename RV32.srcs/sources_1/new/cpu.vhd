@@ -27,45 +27,24 @@ use STD.TEXTIO.ALL;
 
 entity cpu is
 
-    Port (  clk : in std_logic
+    Port (  clk : in std_logic;
+
+            -- PMEM
+            PC_OUT : out std_logic_vector (31 downto 0);
+            PM     : in std_logic_vector (31 downto 0) := x"00000000";
+            
+            POP    : out std_logic_vector (2 downto 0) := "000";
+            PADDR  : out std_logic_vector (31 downto 0) := x"00000000";
+            PRES   : in std_logic_vector (31 downto 0) := x"00000000";
+
+            WE     : out std_logic := '0';
+            WADDR  : out std_logic_vector (31 downto 0) := x"00000000";
+            WDATA  : out std_logic_vector (31 downto 0) := x"00000000"
     );
     
 end cpu;
 
 architecture Behavioral of cpu is
-
-    type pmem_t is array (0 to 1023) of bit_vector (7 downto 0); -- 1 KiB
-    impure function pmem_init (file_name : in string) return pmem_t is
-        FILE bin_file : text is in file_name;
-        variable bin_file_line : line;
-        variable pmem : pmem_t;
-    begin
-        for i in pmem_t'range loop
-            readline (bin_file, bin_file_line);
-            read (bin_file_line, pmem (i));
-        end loop;
-        
-        return pmem;
-    end function;
-
-    signal pmem_c : pmem_t := pmem_init("D:\Documents\HDL\RV32\RV32.prog\test");
-
-    component pmem
-        port (
-            clk : in std_logic; 
-
-            PC    : in unsigned (31 downto 0);
-            PCOUT : out unsigned (31 downto 0);
- 
-            OP   : in unsigned (2 downto 0);
-            ADDR : in unsigned (31 downto 0);
-            RES  : out unsigned (31 downto 0);
- 
-            WE    : in std_logic;
-            WADDR : in unsigned (31 downto 0);
-            WDATA : in unsigned (31 downto 0)
-        );
-    end component;
     
     component alu
         port (
@@ -124,7 +103,6 @@ architecture Behavioral of cpu is
     alias IMMLb3 : unsigned (4 downto 0) is IR3 (11 downto 7);
         
     signal PC : unsigned (31 downto 0) := x"00000000";
-    signal PM : unsigned (31 downto 0);
     
     type register_array is array (0 to 31) of unsigned (31 downto 0);
     signal GR : register_array := (others => x"00000000");
@@ -141,15 +119,6 @@ architecture Behavioral of cpu is
     signal C1   : unsigned (31 downto 0) := (others => '0');
     signal C2   : unsigned (31 downto 0) := (others => '0');
     signal CR   : std_logic;
-
-    -- Pmem Signals
-    signal POP   : unsigned (2 downto 0) := (others => '0');
-    signal PADDR : unsigned (31 downto 0) := (others => '0');
-    signal PRES  : unsigned (31 downto 0) := (others => '0');
-
-    signal WE    : std_logic := '0';
-    signal WADDR : unsigned (31 downto 0) := (others => '0');
-    signal WDATA : unsigned (31 downto 0) := (others => '0');
     
     constant OP_LUI     : unsigned (6 downto 0) := "0110111";
     constant OP_AUIPC   : unsigned (6 downto 0) := "0010111";
@@ -169,7 +138,7 @@ architecture Behavioral of cpu is
             when OP_LUI | OP_AUIPC | OP_ADDI | OP_ADD | OP_JAL | OP_JALR =>
                 res := AR;
             when OP_LB =>
-                res := PRES;
+                res := unsigned (PRES);
             when others =>
                 res := (others => '0');
         end case;
@@ -201,7 +170,7 @@ begin
             elsif ((OP1 = OP_BEQ or OP2 = OP_BEQ or OP3 = OP_BEQ) or (OP1 = OP_JAL or OP2 = OP_JAL or OP3 = OP_JAL) or (OP1 = OP_JALR or OP2 = OP_JALR or OP3 = OP_JALR)) then
                 IR1 <= (others => '0');
             else
-                IR1 <= PM;
+                IR1 <= unsigned (PM);
                 PC <= PC + 4;
                 if PC = 1020 then -- temporary memory overflow fix
                     PC <= (others => '0');
@@ -243,21 +212,21 @@ begin
                     A1 <= data_fwd (RD3, RS1i2);
                     A2 <= data_fwd (RD3, RS2r2);
                 when OP_LB =>
-                    POP <= FUNCT3i2;
-                    PADDR <= data_fwd (RD3, RS1i2) + IMMi2;
+                    POP <=  std_logic_vector (FUNCT3i2);
+                    PADDR <= std_logic_vector (data_fwd (RD3, RS1i2) + IMMi2);
                 when OP_SB =>
                     case FUNCT3i2 is
                         when "000" =>
-                            WADDR <= data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2));
-                            WDATA <= data_fwd (RD3, RS2r2) and x"000000FF";
+                            WADDR <= std_logic_vector (data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2)));
+                            WDATA <= std_logic_vector (data_fwd (RD3, RS2r2) and x"000000FF");
                             WE <= '1';
                         when "001" =>
-                            WADDR <= data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2));
-                            WDATA <= data_fwd (RD3, RS2r2) and x"0000FFFF";
+                            WADDR <= std_logic_vector (data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2)));
+                            WDATA <= std_logic_vector (data_fwd (RD3, RS2r2) and x"0000FFFF");
                             WE <= '1';
                         when "010" =>
-                            WADDR <= data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2));
-                            WDATA <= data_fwd (RD3, RS2r2);
+                            WADDR <= std_logic_vector (data_fwd (RD3, RS1i2) + ((31 downto (IMMHs2'length + IMMLs2'length) => '0') & (IMMHs2 & IMMLs2)));
+                            WDATA <= std_logic_vector (data_fwd (RD3, RS2r2));
                             WE <= '1';
                         when others =>
                             WE <= '0';
@@ -304,10 +273,9 @@ begin
             GR (0) <= (others => '0');
         end if;
     end process;
-    
-    -- Connections to other components
-    U0 : pmem port map (clk=>clk, PC=>PC, PCOUT=>PM, OP=>POP, ADDR=>PADDR, RES=>PRES, WE=>WE, WADDR=>WADDR, WDATA=>WDATA);
 
+    PC_OUT <= std_logic_vector (PC);
+    
     U1 : alu port map (clk=>clk, OP=>AOP, A1=>A1, A2=>A2, AR=>AR, ANEG=>ANEG); 
 
     U2 : comparator port map (OP=>COP, C1=>C1, C2=>C2, CR=>CR); 
