@@ -61,10 +61,10 @@ architecture Behavioral of pmem is
         return pmem;
     end function;
 
-    signal pmem_c : pmem_t := pmem_init ("test.mem");
+    signal pmem_c : pmem_t := pmem_init("D:\Documents\HDL\RV32\RV32.prog\test");
 
     function read_consecutive ( signal pmem  : in pmem_t;
-                                signal start : in unsigned (31 downto 0);
+                                signal start : in unsigned (9 downto 0);
                                 size         : in integer
                               ) return unsigned is variable res : unsigned (31 downto 0);
     
@@ -81,7 +81,7 @@ architecture Behavioral of pmem is
     end read_consecutive;
 
     function read_consecutive_high ( signal pmem  : in pmem_t;
-                                     signal start : in unsigned (31 downto 0);
+                                     signal start : in unsigned (9 downto 0);
                                      size         : in integer
                                    ) return unsigned is variable res : unsigned (31 downto 0);
     
@@ -98,7 +98,7 @@ architecture Behavioral of pmem is
     end read_consecutive_high;
 
     function read_32 ( signal  pmem : in pmem_t;
-                        signal addr : in unsigned (31 downto 0)
+                        signal addr : in unsigned (9 downto 0)
                      ) return unsigned is variable res : unsigned (31 downto 0);
     begin
         res := read_consecutive (pmem, addr, 4);
@@ -111,20 +111,20 @@ begin
         if rising_edge (clk) then
             if (WE = '1') then
                 for i in 0 to 3 loop
-                    pmem_c (to_integer (WADDR) + i) <= to_bitvector (std_ulogic_vector (WDATA (i * 8 + 7 downto i * 8)));
+                    pmem_c (to_integer (WADDR (9 downto 0)) + 3 - i) <= to_bitvector (std_ulogic_vector (WDATA (i * 8 + 7 downto i * 8)));
                 end loop;
             end if;
         end if;
     end process;
 
-    PCOUT <= read_32 (pmem_c, PC);
+    PCOUT <= read_32 (pmem_c, PC (9 downto 0));
 
-    RES <=  read_consecutive (pmem_c, ADDR, 1) when (OP = "000") else
-            read_consecutive (pmem_c, ADDR, 2) when (OP = "001") else
-            read_consecutive (pmem_c, ADDR, 3) when (OP = "010") else
+    RES <=  read_consecutive (pmem_c, ADDR (9 downto 0), 1) when (OP = "000") else
+            read_consecutive (pmem_c, ADDR (9 downto 0), 2) when (OP = "001") else
+            read_consecutive (pmem_c, ADDR (9 downto 0), 4) when (OP = "010") else
 
-            read_consecutive_high (pmem_c, ADDR, 1) when (OP = "100") else
-            read_consecutive_high (pmem_c, ADDR, 2) when (OP = "101") else
+            read_consecutive_high (pmem_c, ADDR (9 downto 0), 1) when (OP = "100") else
+            read_consecutive_high (pmem_c, ADDR (9 downto 0), 2) when (OP = "101") else
 
             (others => '0');
 

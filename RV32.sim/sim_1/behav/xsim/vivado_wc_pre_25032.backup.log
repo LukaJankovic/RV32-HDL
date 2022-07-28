@@ -1,0 +1,21 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Mon Jul 25 04:00:25 2022
+# Process ID: 25032
+# Current directory: D:/Documents/HDL/RV32/RV32.sim/sim_1/behav/xsim
+# Command line: vivado.exe -mode batch -notrace -nojournal -log vivado_wc_pre.log -source vivado_wc_pre.tcl
+# Log file: D:/Documents/HDL/RV32/RV32.sim/sim_1/behav/xsim/vivado_wc_pre.log
+# Journal file: 
+# Running On: LLegion, OS: Windows, CPU Frequency: 3194 MHz, CPU Physical cores: 16, Host memory: 17024 MB
+#-----------------------------------------------------------
+source vivado_wc_pre.tcl -notrace
+Scanning sources...
+Finished scanning sources
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'C:/Xilinx/Vivado/2022.1/data/ip'.
+C:\Users\lukja\AppData\Local\Programs\Python\Python39\python.exe: can't open file 'D:\Documents\HDL\RV32\RV32.sim\sim_1\behav\xsim\DocumentsHDLRV32RV32.proggenpmem.py': [Errno 2] No such file or directory
+ERROR: Script failed:"C:/Users/lukja/AppData/Roaming/Xilinx/Vivado/compile.tcl"
+INFO: [Common 17-206] Exiting Vivado at Mon Jul 25 04:00:31 2022...

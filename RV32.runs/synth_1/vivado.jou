@@ -2,8 +2,8 @@
 # Vivado v2022.1 (64-bit)
 # SW Build 3526262 on Mon Apr 18 15:48:16 MDT 2022
 # IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
-# Start of session at: Mon Jul 18 13:48:19 2022
-# Process ID: 2928
+# Start of session at: Mon Jul 25 00:33:32 2022
+# Process ID: 27128
 # Current directory: D:/Documents/HDL/RV32/RV32.runs/synth_1
 # Command line: vivado.exe -log cpu.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source cpu.tcl
 # Log file: D:/Documents/HDL/RV32/RV32.runs/synth_1/cpu.vds

@@ -85,6 +85,7 @@ set_property ip_output_repo d:/Documents/HDL/RV32/RV32.cache/ip [current_project
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
+read_mem D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/test.mem
 read_vhdl -library xil_defaultlib {
   D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/alu.vhd
   D:/Documents/HDL/RV32/RV32.srcs/sources_1/new/comparator.vhd

@@ -34,6 +34,22 @@ end cpu;
 
 architecture Behavioral of cpu is
 
+    type pmem_t is array (0 to 1023) of bit_vector (7 downto 0); -- 1 KiB
+    impure function pmem_init (file_name : in string) return pmem_t is
+        FILE bin_file : text is in file_name;
+        variable bin_file_line : line;
+        variable pmem : pmem_t;
+    begin
+        for i in pmem_t'range loop
+            readline (bin_file, bin_file_line);
+            read (bin_file_line, pmem (i));
+        end loop;
+        
+        return pmem;
+    end function;
+
+    signal pmem_c : pmem_t := pmem_init("D:\Documents\HDL\RV32\RV32.prog\test");
+
     component pmem
         port (
             clk : in std_logic; 
@@ -150,7 +166,7 @@ architecture Behavioral of cpu is
 
     begin
         case OP is
-            when OP_LUI | OP_AUIPC | OP_ADDI | OP_ADD | OP_LB | OP_JAL =>
+            when OP_LUI | OP_AUIPC | OP_ADDI | OP_ADD | OP_JAL | OP_JALR =>
                 res := AR;
             when OP_LB =>
                 res := PRES;
@@ -258,7 +274,7 @@ begin
                 when OP_JALR =>
                     A1 <= PC;
                     A2 <= x"00000004";
-                    PC2 <= data_fwd (RD3, RS1i2) + (31 downto 20 => IMMi2 (11)) & IMMi2 (11 downto 1) & "0";
+                    PC2 <= data_fwd (RD3, RS1i2) + ((31 downto 20 => IMMi2 (11)) & IMMi2 (11 downto 1) & "0");
                 when others =>
                         A1 <= (others => '0');
                         A2 <= (others => '0');
