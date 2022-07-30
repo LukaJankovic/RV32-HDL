@@ -11,8 +11,8 @@
       "validated": "true"
     },
     "design_tree": {
-      "cpu_0": "",
-      "pmem_0": ""
+      "pmem_0": "",
+      "cpu_0": ""
     },
     "ports": {
       "clk": {
@@ -20,61 +20,6 @@
       }
     },
     "components": {
-      "cpu_0": {
-        "vlnv": "xilinx.com:module_ref:cpu:1.0",
-        "xci_name": "design_1_cpu_0_0",
-        "xci_path": "ip\\design_1_cpu_0_0_1\\design_1_cpu_0_0.xci",
-        "inst_hier_path": "cpu_0",
-        "reference_info": {
-          "ref_type": "hdl",
-          "ref_name": "cpu",
-          "boundary_crc": "0x0"
-        },
-        "ports": {
-          "clk": {
-            "type": "clk",
-            "direction": "I"
-          },
-          "PC_OUT": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "PM": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "POP": {
-            "direction": "O",
-            "left": "2",
-            "right": "0"
-          },
-          "PADDR": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "PRES": {
-            "direction": "I",
-            "left": "31",
-            "right": "0"
-          },
-          "WE": {
-            "direction": "O"
-          },
-          "WADDR": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          },
-          "WDATA": {
-            "direction": "O",
-            "left": "31",
-            "right": "0"
-          }
-        }
-      },
       "pmem_0": {
         "vlnv": "xilinx.com:module_ref:pmem:1.0",
         "xci_name": "design_1_pmem_0_0",
@@ -129,14 +74,69 @@
             "right": "0"
           }
         }
+      },
+      "cpu_0": {
+        "vlnv": "xilinx.com:module_ref:cpu:1.0",
+        "xci_name": "design_1_cpu_0_0",
+        "xci_path": "ip\\design_1_cpu_0_0_1\\design_1_cpu_0_0.xci",
+        "inst_hier_path": "cpu_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "cpu",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I"
+          },
+          "PC_OUT": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "PM": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "POP": {
+            "direction": "O",
+            "left": "2",
+            "right": "0"
+          },
+          "PADDR": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "PRES": {
+            "direction": "I",
+            "left": "31",
+            "right": "0"
+          },
+          "WE": {
+            "direction": "O"
+          },
+          "WADDR": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          },
+          "WDATA": {
+            "direction": "O",
+            "left": "31",
+            "right": "0"
+          }
+        }
       }
     },
     "nets": {
       "clk_1": {
         "ports": [
           "clk",
-          "cpu_0/clk",
-          "pmem_0/clk"
+          "pmem_0/clk",
+          "cpu_0/clk"
         ]
       },
       "cpu_0_PADDR": {

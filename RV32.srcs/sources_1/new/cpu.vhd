@@ -243,7 +243,7 @@ begin
                 when OP_JALR =>
                     A1 <= PC;
                     A2 <= x"00000004";
-                    PC2 <= data_fwd (RD3, RS1i2) + ((31 downto 20 => IMMi2 (11)) & IMMi2 (11 downto 1) & "0");
+                    PC2 <= (data_fwd (RD3, RS1i2) + ((31 downto 21 => IMMi2 (11)) & IMMi2 (11 downto 0))) and x"FFFFFFFE";
                 when others =>
                         A1 <= (others => '0');
                         A2 <= (others => '0');

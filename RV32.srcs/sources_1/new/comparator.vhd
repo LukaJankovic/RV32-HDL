@@ -40,9 +40,9 @@ begin
     CR <= '1' when (C1 = C2)                    and (OP = "000") else
           '1' when (C1 /= C2)                   and (OP = "001") else
           '1' when (signed (C1) < signed (C2))  and (OP = "100") else
-          '1' when (signed (C1) > signed (C2))  and (OP = "101") else
+          '1' when (signed (C1) >= signed (C2)) and (OP = "101") else
           '1' when (C1 < C2)                    and (OP = "110") else
-          '1' when (C1 > C2)                    and (OP = "111") else
+          '1' when (C1 >= C2)                   and (OP = "111") else
           '0';
 
 end Behavioral;

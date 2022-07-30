@@ -1,7 +1,7 @@
 --Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2022.1 (win64) Build 3526262 Mon Apr 18 15:48:16 MDT 2022
---Date        : Thu Jul 28 02:38:46 2022
+--Date        : Sat Jul 30 01:47:59 2022
 --Host        : LLegion running 64-bit major release  (build 9200)
 --Command     : generate_target design_1.bd
 --Design      : design_1
@@ -22,19 +22,6 @@ entity design_1 is
 end design_1;
 
 architecture STRUCTURE of design_1 is
-  component design_1_cpu_0_0 is
-  port (
-    clk : in STD_LOGIC;
-    PC_OUT : out STD_LOGIC_VECTOR ( 31 downto 0 );
-    PM : in STD_LOGIC_VECTOR ( 31 downto 0 );
-    POP : out STD_LOGIC_VECTOR ( 2 downto 0 );
-    PADDR : out STD_LOGIC_VECTOR ( 31 downto 0 );
-    PRES : in STD_LOGIC_VECTOR ( 31 downto 0 );
-    WE : out STD_LOGIC;
-    WADDR : out STD_LOGIC_VECTOR ( 31 downto 0 );
-    WDATA : out STD_LOGIC_VECTOR ( 31 downto 0 )
-  );
-  end component design_1_cpu_0_0;
   component design_1_pmem_0_0 is
   port (
     clk : in STD_LOGIC;
@@ -48,6 +35,19 @@ architecture STRUCTURE of design_1 is
     WDATA : in STD_LOGIC_VECTOR ( 31 downto 0 )
   );
   end component design_1_pmem_0_0;
+  component design_1_cpu_0_0 is
+  port (
+    clk : in STD_LOGIC;
+    PC_OUT : out STD_LOGIC_VECTOR ( 31 downto 0 );
+    PM : in STD_LOGIC_VECTOR ( 31 downto 0 );
+    POP : out STD_LOGIC_VECTOR ( 2 downto 0 );
+    PADDR : out STD_LOGIC_VECTOR ( 31 downto 0 );
+    PRES : in STD_LOGIC_VECTOR ( 31 downto 0 );
+    WE : out STD_LOGIC;
+    WADDR : out STD_LOGIC_VECTOR ( 31 downto 0 );
+    WDATA : out STD_LOGIC_VECTOR ( 31 downto 0 )
+  );
+  end component design_1_cpu_0_0;
   signal clk_1 : STD_LOGIC;
   signal cpu_0_PADDR : STD_LOGIC_VECTOR ( 31 downto 0 );
   signal cpu_0_PC : STD_LOGIC_VECTOR ( 31 downto 0 );
